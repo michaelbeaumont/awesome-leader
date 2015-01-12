@@ -6,12 +6,12 @@ local math = math
 local awful = require "awful"
 local wibox = require "wibox"
 local capi =
-{
-    client = client,
-    screen = screen,
-    mouse = mouse,
-    button = button
-}
+    {
+        client = client,
+        screen = screen,
+        mouse = mouse,
+        button = button
+    }
 
 local minilog = require "lua-minilog"
 local logger = minilog.logger('off')
@@ -29,21 +29,28 @@ function leader.make_leadergrabber(map, args)
     local args = args or { keys = {}, count = 0, digits = 0 }
     local collect
     collect = awful.keygrabber.run(function(mod, key, event)
-        if event == "release" then return end
-        logger.print("fine", "Got key: " .. key)
-        if map[key] then
-            table.insert(args.keys, key) 
-            logger.print("fine", "Found callback")
-            map[key](args)
-        elseif tonumber(key) then
-            args.count = args.count*10+tonumber(key)
-            args.digits = args.digits+1
-            return true
-        else
-            logger.print("fine", "Found no callback")
-        end
-        awful.keygrabber.stop(collect)
-        if map.cleanup then map.cleanup() end
+            if event == "release"
+                or key:find('Shift')
+                or key:find('Control')
+                or key:find('Alt')
+                or key:find('Super')
+            then
+                return
+            end
+            logger.print("fine", "Got key: " .. key)
+            if map[key] then
+                table.insert(args.keys, key) 
+                logger.print("fine", "Found callback")
+                map[key](args)
+            elseif tonumber(key) then
+                args.count = args.count*10+tonumber(key)
+                args.digits = args.digits+1
+                return true
+            else
+                logger.print("fine", "Found no callback")
+            end
+            awful.keygrabber.stop(collect)
+            if map.cleanup then map.cleanup() end
     end)
 end
 
