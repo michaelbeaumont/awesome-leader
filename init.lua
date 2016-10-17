@@ -5,15 +5,7 @@ local table = table
 local math = math
 local awful = require "awful"
 local wibox = require "wibox"
-local timer = timer
-local capi =
-    {
-        client = client,
-        screen = screen,
-        mouse = mouse,
-        button = button
-    }
-
+local gears = require "gears"
 local minilog = require "lua-minilog"
 local logger = minilog.logger('off')
 
@@ -24,12 +16,11 @@ local function access_map(word, new_map)
     return leader.global_map[word]
 end
 
-
 --create a new grabber
 function leader.make_leadergrabber(map, args)
     local args = args or { keys = {}, mods = {}, count = 0, digits = 0 }
     local collect
-    local timer = timer({timeout=leader.timeout})
+    local timer = gears.timer({timeout=leader.timeout})
     timer:connect_signal("timeout",
                          function() awful.keygrabber.stop(collect) end)
     timer:start()
