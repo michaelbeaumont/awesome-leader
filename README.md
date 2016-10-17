@@ -15,6 +15,8 @@ Require the module at the top of `rc.lua`, bind the root leader to a key, and ad
                        print(table.concat(args.keys) .. "," .. args.count)
                        print("ab expected") end)
 
+Strings of keys can be specific as either tables `{'a', 'Return'}` or as strings `'ab'`.
+
 Optionally, you can get a link directly to a word:
 
     awful.key({ modkey }, "a", leader.get_leader("a"))

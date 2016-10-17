@@ -24,7 +24,8 @@ function leader.make_leadergrabber(map, args)
     timer:connect_signal("timeout",
                          function() awful.keygrabber.stop(collect) end)
     timer:start()
-    collect = awful.keygrabber.run(function(mod, key, event)
+    collect = awful.keygrabber.run(
+        function(mod, key, event)
             if key:find('Shift')
                 or key:find('Control')
                 or key:find('Alt')
@@ -38,7 +39,7 @@ function leader.make_leadergrabber(map, args)
             end
             logger.print("fine", "Got key: " .. key)
             if map[key] then
-                table.insert(args.keys, key) 
+                table.insert(args.keys, key)
                 logger.print("fine", "Found callback")
                 map[key].f(args)
                 if map[key].sticky then
@@ -57,22 +58,41 @@ function leader.make_leadergrabber(map, args)
     end)
 end
 
+function str_to_arr(keys)
+  local out = {}
+  for i=1,string.len(keys) do
+    table.insert(out, string.sub(keys, i, i))
+  end
+  return out
+end
 
 --add function for key combination
 --Note: Overwrites functions for prefixes
-function leader.add_key(word, f, sticky)
-    local word_len = string.len(word)
-    for i=1,word_len do
-        local prefix = string.sub(word,1,i)
-        local init_prefix = string.sub(word,1,i-1)
-        local last_prefix = string.sub(word,i,i)
-        local new_continuation = i == word_len and {f=f, sticky=sticky}
-            or {f=function(args) leader.make_leadergrabber(access_map(prefix), args) end}
+function leader.add_key(keys, f, sticky)
+    if type(keys) == "string" then
+        keys = str_to_arr(keys)
+    end
+    local prefix = ""
+    for i=1,#keys do
+        local init_prefix = prefix
+        local this_key = keys[i]
+        if i == 1 then
+          prefix = keys[i]
+        else
+          prefix = prefix .. " " .. keys[i]
+        end
+        local this_prefix = prefix
+        local new_continuation =
+            i == #keys and {f=f, sticky=sticky}
+            or { f = function(args)
+                     leader.make_leadergrabber(access_map(this_prefix), args)
+                     end
+            }
         if not access_map(init_prefix) then
-            local map = {[last_prefix] = new_continuation}
+            local map = {[this_key] = new_continuation}
             access_map(init_prefix, map)
         else
-            access_map(init_prefix)[last_prefix] = new_continuation
+            access_map(init_prefix)[this_key] = new_continuation
         end
     end
 end
