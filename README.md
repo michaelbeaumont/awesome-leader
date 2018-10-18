@@ -3,8 +3,39 @@ awesome-leader
 
 This module lets you string together key combinations in awesome triggered by pressing a leader key. It should roughly emulate vim's behavior here. Count arguments before combinations are also supported.
 
+Note: This version needs the latest awesome-git and https://github.com/awesomeWM/awesome/pull/2443
+
 Instructions
 ------------
+
+```
+local tab_keys = leader.basic_sequence({
+    {"t",
+     function(args)
+       local word = "new"
+       awful.tag.add(word, {index=args.count})
+     end,
+     "New tag!"
+    },
+})
+
+local rec_leader =
+  leader.wrap(
+    leader.repeat_count,
+    leader.sequence({
+        {"t", tab_keys},
+        desc = "Leader"
+  }))
+
+local keys = leader.leader(rec_leader)
+
+awful.key({ modkey }, "z", keys.f)
+```
+
+And we can press combinations like `<modkey-z>2t2` to add 2 new tabs at index 2
+We also get nifty popups at each stage telling us what keys are available.
+
+### Legacy
 
 Require the module at the top of `rc.lua`, bind the root leader to a key, and add key combinations:
 
