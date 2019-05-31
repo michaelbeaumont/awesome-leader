@@ -8,6 +8,7 @@ local gears = require "gears"
 local minilog = require "lua-minilog"
 local logger = minilog.logger('off')
 
+
 local leader = {timeout = 4, global_map = {}}
 
 local hotkeys_popup = require("awful.hotkeys_popup").widget.new()
@@ -18,23 +19,8 @@ local function access_map(word, new_map)
     return leader.global_map[word]
 end
 
-function leader.leader(config)
-  return config(function(x) return x end)
-end
-
-function leader.repeat_count(f)
-  return function(args_stack)
-    local g = f(args_stack)
-    local this_args = table.remove(args_stack)
-    local real_count = this_args and this_args.count and math.max(this_args.count,1) or 1
-    for _=1,real_count do
-      g()
-    end
-  end
-end
-
 --create a new grabber
-function leader.make_leadergrabber(map, base_args, finish, ignore_args)
+local function make_leadergrabber(map, base_args, finish, ignore_args)
     base_args = base_args or {}
     finish = finish or function() end
     local args = { keys = {}, mods = {}, count = nil, digits = 0 }
@@ -86,6 +72,14 @@ function leader.make_leadergrabber(map, base_args, finish, ignore_args)
     end)
 end
 
+local function compose(g, f)
+  return function(x)
+    return g(f(x))
+  end
+end
+
+
+--Deprecated
 local function str_to_arr(keys)
   local out = {}
   for i=1,string.len(keys) do
@@ -94,81 +88,7 @@ local function str_to_arr(keys)
   return out
 end
 
-function leader.pure(f, desc)
-  return function(c)
-    local wrapped_f =
-      function(args)
-        local this_args = table.remove(args)
-        return function()
-          return f(this_args)
-        end
-      end
-    return {
-      f = c(wrapped_f),
-      desc = desc
-    }
-  end
-end
-
-local function compose(g, f)
-  return function(x)
-    return g(f(x))
-  end
-end
-
-function leader.sequence(key_binds)
-  return function(contA)
-    local map = {}
-    local descs = {}
-    for _, bind in ipairs(key_binds) do
-      local bound = bind[2](contA)
-      local internal_bind = {
-        key=bind[1],
-        f=bound.f
-      }
-      local key = {[bind[1]] = bound.desc}
-      table.insert(
-        descs,
-        {keys=key, modifiers={}}
-      )
-      map[internal_bind.key] = internal_bind
-    end
-    hotkeys_popup:add_hotkeys(
-      {[key_binds.desc] = descs}
-    )
-    return {
-      f = function(args)
-        local widget =
-          hotkeys_popup:_create_wibox(
-            mouse.screen,
-            {key_binds.desc}
-          )
-        widget:show()
-        leader.make_leadergrabber(
-          map,
-          args,
-          function() widget:hide() end
-        )
-      end,
-      desc=key_binds.desc
-    }
-  end
-end
-
-function leader.basic_sequence(key_binds)
-  for _, bind in ipairs(key_binds) do
-    bind[2] = leader.pure(bind[2], bind[3])
-    bind[3] = nil
-  end
-  return leader.sequence(key_binds)
-end
-
-function leader.wrap(f, cont)
-  return function(c)
-    return cont(compose(f, c))
-  end
-end
-
+--Deprecated
 local function wrap_naked_f(f)
   return function(args)
     return function()
@@ -179,6 +99,7 @@ end
 
 --add function for key combination
 --Note: Overwrites functions for prefixes
+--Deprecated
 function leader.add_key(keys, f, sticky)
   if type(keys) == "string" then
     keys = str_to_arr(keys)
@@ -198,7 +119,7 @@ function leader.add_key(keys, f, sticky)
       or { f =
              wrap_naked_f(
                function(args)
-                 leader.make_leadergrabber(access_map(this_prefix), args)
+                 make_leadergrabber(access_map(this_prefix), args)
              end)
       }
     if not access_map(init_prefix) then
@@ -210,10 +131,92 @@ function leader.add_key(keys, f, sticky)
   end
 end
 
+-- Functions for building configs
+function leader.pure(f)
+  return function(c)
+    local wrapped_f =
+      function(args)
+        local this_args = table.remove(args)
+        return function()
+          return f(this_args)
+        end
+      end
+    return {
+      f = function() return c(wrapped_f) end,
+    }
+  end
+end
+
+function leader.sequence(key_binds)
+  return function(contA)
+    local map = {}
+    local descs = {}
+    for _, bind in ipairs(key_binds) do
+      local bound = bind[2](contA)
+      local internal_bind = {
+        key=bind[1],
+        f=bound.f(bind[3])
+      }
+      local key = {[bind[1]] = bind[3]}
+      table.insert(
+        descs,
+        {keys=key, modifiers={}}
+      )
+      if bound.desc then
+        hotkeys_popup:add_hotkeys(
+          {[bind[3]] = bound.desc}
+        )
+      end
+      map[internal_bind.key] = internal_bind
+    end
+    return {
+      f = function (name) return function(args)
+        local widget =
+          hotkeys_popup:_create_wibox(
+            mouse.screen,
+            {name}
+          )
+        widget:show()
+        make_leadergrabber(
+          map,
+          args,
+          function() widget:hide() end
+        )
+    end
+      end,
+      desc = descs
+    }
+  end
+end
+
+function leader.pure_sequence(key_binds)
+  for _, bind in ipairs(key_binds) do
+    bind[2] = leader.pure(bind[2])
+  end
+  return leader.sequence(key_binds)
+end
+
+function leader.repeat_count(f)
+  return function(args_stack)
+    local g = f(args_stack)
+    local this_args = table.remove(args_stack)
+    local real_count = this_args and this_args.count and math.max(this_args.count,1) or 1
+    for _ = 1, real_count do
+      g()
+    end
+  end
+end
+
+function leader.wrap(f, cont)
+  return function(c)
+    return cont(compose(f, c))
+  end
+end
+
 --a function to get a function to start grabbing keys, leave blank to get root
 function leader.get_leader(word)
   word = word or ""
-  return function() leader.make_leadergrabber(access_map(word)) end
+  return function() make_leadergrabber(access_map(word)) end
 end
 
 function leader.set_timeout(timeout)
@@ -222,6 +225,15 @@ end
 
 function leader.disable_timeout()
   leader.timeout = -1
+end
+
+function leader.leader(config, title)
+  title = title or "Leader"
+  local root = config(function(x) return x end)
+  hotkeys_popup:add_hotkeys(
+    {[title] = root.desc}
+  )
+  return root.f(title)
 end
 
 --simple test function
