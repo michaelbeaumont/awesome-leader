@@ -9,7 +9,7 @@ Instructions
 ------------
 
 ```
-local tab_keys = leader.basic_sequence({
+local tab_keys = leader.pure_sequence({
     {"t",
      function(args)
        local word = "new"
@@ -23,13 +23,12 @@ local rec_leader =
   leader.wrap(
     leader.repeat_count,
     leader.sequence({
-        {"t", tab_keys},
-        desc = "Leader"
+        {"t", tab_keys, "Tags"},
   }))
 
-local keys = leader.leader(rec_leader)
+local root_leader = leader.leader(rec_leader)
 
-awful.key({ modkey }, "z", keys.f)
+awful.key({ modkey }, "z", root_leader)
 ```
 
 And we can press combinations like `<modkey-z>2t2` to add 2 new tabs at index 2
