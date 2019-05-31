@@ -1,10 +1,9 @@
-local print, tostring = print, tostring
-local ipairs, pairs = ipairs, pairs
-local setmetatable = setmetatable
+local print = print
+local ipairs = ipairs
 local table = table
 local math = math
+local mouse = mouse
 local awful = require "awful"
-local wibox = require "wibox"
 local gears = require "gears"
 local minilog = require "lua-minilog"
 local logger = minilog.logger('off')
@@ -28,7 +27,7 @@ function leader.repeat_count(f)
     local g = f(args_stack)
     local this_args = table.remove(args_stack)
     local real_count = this_args and this_args.count and math.max(this_args.count,1) or 1
-    for i=1,real_count do
+    for _=1,real_count do
       g()
     end
   end
@@ -50,7 +49,7 @@ function leader.make_leadergrabber(map, base_args, finish, ignore_args)
     )
     timer:start()
     collect = awful.keygrabber.run(
-      function(mod, key, event)
+      function(_, key, event)
         if key:find('Shift')
           or key:find('Control')
           or key:find('Alt')
@@ -87,7 +86,7 @@ function leader.make_leadergrabber(map, base_args, finish, ignore_args)
     end)
 end
 
-function str_to_arr(keys)
+local function str_to_arr(keys)
   local out = {}
   for i=1,string.len(keys) do
     table.insert(out, string.sub(keys, i, i))
@@ -111,7 +110,7 @@ function leader.pure(f, desc)
   end
 end
 
-function leader.compose(g, f)
+local function compose(g, f)
   return function(x)
     return g(f(x))
   end
@@ -166,7 +165,7 @@ end
 
 function leader.wrap(f, cont)
   return function(c)
-    return cont(leader.compose(f, c))
+    return cont(compose(f, c))
   end
 end
 
@@ -213,7 +212,7 @@ end
 
 --a function to get a function to start grabbing keys, leave blank to get root
 function leader.get_leader(word)
-  local word = word or ""
+  word = word or ""
   return function() leader.make_leadergrabber(access_map(word)) end
 end
 
