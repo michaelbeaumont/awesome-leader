@@ -2,7 +2,7 @@ local print = print
 local ipairs = ipairs
 local table = table
 local math = math
-local mouse = mouse
+local mouse = mouse -- luacheck: no global
 local awful = require "awful"
 local gears = require "gears"
 local minilog = require "lua-minilog"
@@ -78,58 +78,6 @@ local function compose(g, f)
   end
 end
 
-
---Deprecated
-local function str_to_arr(keys)
-  local out = {}
-  for i=1,string.len(keys) do
-    table.insert(out, string.sub(keys, i, i))
-  end
-  return out
-end
-
---Deprecated
-local function wrap_naked_f(f)
-  return function(args)
-    return function()
-      return f(args)
-    end
-  end
-end
-
---add function for key combination
---Note: Overwrites functions for prefixes
---Deprecated
-function leader.add_key(keys, f, sticky)
-  if type(keys) == "string" then
-    keys = str_to_arr(keys)
-  end
-  local prefix = ""
-  for i=1,#keys do
-    local init_prefix = prefix
-    local this_key = keys[i]
-    if i == 1 then
-      prefix = keys[i]
-    else
-      prefix = prefix .. " " .. keys[i]
-    end
-    local this_prefix = prefix
-    local new_continuation =
-      i == #keys and {f=wrap_naked_f(f), sticky=sticky}
-      or { f =
-             wrap_naked_f(
-               function(args)
-                 make_leadergrabber(access_map(this_prefix), args)
-             end)
-      }
-    if not access_map(init_prefix) then
-      local map = {[this_key] = new_continuation}
-      access_map(init_prefix, map)
-    else
-      access_map(init_prefix)[this_key] = new_continuation
-    end
-  end
-end
 
 -- Functions for building configs
 function leader.pure(f)
