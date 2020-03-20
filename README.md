@@ -2,7 +2,7 @@
 
 This module lets you string together key combinations in awesome triggered by pressing a leader key. It should roughly emulate vim's behavior here. Count arguments before combinations are also supported.
 
-Note: This version needs the latest awesome-git and https://github.com/awesomeWM/awesome/pull/2443
+Note: This version needs the latest awesome-git
 
 ## Instructions
 
