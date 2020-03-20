@@ -10,8 +10,8 @@ return {
                 end
                 return levels[key] <= levels[table.level]
             end
-            l.print = function(level, ...)
-                if l[level] then
+            l.print = function(msg_level, ...)
+                if l[msg_level] then
                     print(...)
                 end
             end

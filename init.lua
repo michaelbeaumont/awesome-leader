@@ -155,8 +155,10 @@ function leader.repeat_count(f)
     local g = f(args_stack)
     local this_args = table.remove(args_stack)
     local real_count = this_args and this_args.count and math.max(this_args.count,1) or 1
-    for _ = 1, real_count do
-      g()
+    return function()
+      for _ = 1, real_count do
+        g()
+      end
     end
   end
 end
@@ -183,7 +185,12 @@ end
 
 function leader.leader(config, title)
   title = title or "Leader"
-  local root = config(function(x) return x end)
+  local function go(f)
+    return function(args_stack)
+      return f(args_stack)()
+    end
+  end
+  local root = leader.wrap(go, config)(function(x) return x end)
   hotkeys_popup:add_hotkeys(
     {[title] = root.desc}
   )
