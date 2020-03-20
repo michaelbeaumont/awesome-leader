@@ -9,15 +9,10 @@ local minilog = require "lua-minilog"
 local logger = minilog.logger('off')
 
 
-local leader = {timeout = 4, global_map = {}}
+local leader = {timeout = 4}
 
 local hotkeys_popup = require("awful.hotkeys_popup").widget.new()
 hotkeys_popup:_load_widget_settings()
-
-local function access_map(word, new_map)
-    if new_map then leader.global_map[word] = new_map end
-    return leader.global_map[word]
-end
 
 --create a new grabber
 local function make_leadergrabber(map, base_args, finish, ignore_args)
@@ -169,12 +164,6 @@ function leader.wrap(f, cont)
   end
 end
 
---a function to get a function to start grabbing keys, leave blank to get root
-function leader.get_leader(word)
-  word = word or ""
-  return function() make_leadergrabber(access_map(word)) end
-end
-
 function leader.set_timeout(timeout)
   leader.timeout = timeout
 end
@@ -195,17 +184,6 @@ function leader.leader(config, title)
     {[title] = root.desc}
   )
   return root.f(title)
-end
-
---simple test function
-function leader.setup_test_grabber()
-  leader.add_key("a", function() print("a expected") end)
-  leader.add_key("ab", function(args)
-                   print(table.concat(args.keys) .. "," .. args.count)
-                   print("ab expected") end)
-  leader.add_key("ac", function(args)
-                   print(table.concat(args.keys) .. "," .. args.count)
-                   print("ac expected") end)
 end
 
 return leader
