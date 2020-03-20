@@ -80,7 +80,7 @@ end
 
 
 -- Functions for building configs
-function leader.pure(f)
+function leader.action(f)
   return function(c)
     local wrapped_f =
       function(args)
@@ -94,6 +94,8 @@ function leader.pure(f)
     }
   end
 end
+
+leader.pure = leader.action
 
 function leader.sequence(key_binds)
   return function(contA)
@@ -137,12 +139,16 @@ function leader.sequence(key_binds)
   end
 end
 
-function leader.pure_sequence(key_binds)
+leader.bind = leader.sequence
+
+function leader.bind_actions(key_binds)
   for _, bind in ipairs(key_binds) do
-    bind[2] = leader.pure(bind[2])
+    bind[2] = leader.action(bind[2])
   end
-  return leader.sequence(key_binds)
+  return leader.bind(key_binds)
 end
+
+leader.pure_sequence = leader.pure_sequence
 
 function leader.repeat_count(f)
   return function(args_stack)

@@ -9,7 +9,7 @@ Instructions
 ------------
 
 ```
-local tab_keys = leader.pure_sequence({
+local tab_keys = leader.bind_actions({
     {"t",
      function(args)
        local word = "new"
@@ -22,7 +22,7 @@ local tab_keys = leader.pure_sequence({
 local rec_leader =
   leader.wrap(
     leader.repeat_count,
-    leader.sequence({
+    leader.bind({
         {"t", tab_keys, "Tags"},
   }))
 
@@ -31,7 +31,11 @@ local root_leader = leader.leader(rec_leader)
 awful.key({ modkey }, "z", root_leader)
 ```
 
-And we can press combinations like `<modkey-z>2t2` to add 2 new tabs at index 2
+Use `bind_actions` to bind a list of simple Lua functions, keys and
+descriptions. To build up more complicated bindings (in this example, to put
+`tab_keys` behind the `t` key) use `bind`.
+
+With this config, we can press combinations like `<modkey-z>2t2` to add 2 new tabs at index 2.
 We also get nifty popups at each stage telling us what keys are available.
 
 ### Legacy
