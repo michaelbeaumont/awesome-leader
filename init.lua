@@ -5,7 +5,7 @@ local math = math
 local mouse = mouse -- luacheck: no global
 local awful = require "awful"
 local gears = require "gears"
-local minilog = require "lua-minilog"
+local minilog = require "awesome-leader.lua-minilog"
 local logger = minilog.logger('off')
 
 
