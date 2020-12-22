@@ -12,7 +12,6 @@ local logger = minilog.logger('off')
 local leader = {timeout = 4}
 
 local hotkeys_popup = require("awful.hotkeys_popup").widget.new()
-hotkeys_popup:_load_widget_settings()
 
 --create a new grabber
 local function make_leadergrabber(map, base_args, finish, ignore_args)
@@ -116,6 +115,7 @@ function leader.sequence(key_binds)
     end
     return {
       f = function (name) return function(args)
+        hotkeys_popup:_load_widget_settings()
         local widget =
           hotkeys_popup:_create_wibox(
             mouse.screen,
