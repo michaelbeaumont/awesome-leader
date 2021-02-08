@@ -91,7 +91,7 @@ end
 
 leader.pure = leader.action
 
-function leader.sequence(key_binds)
+function leader.bind(key_binds)
   return function(contA)
     local map = {}
     local descs = {}
@@ -134,7 +134,7 @@ function leader.sequence(key_binds)
   end
 end
 
-leader.bind = leader.sequence
+leader.sequence = leader.bind
 
 function leader.bind_actions(key_binds)
   for _, bind in ipairs(key_binds) do
@@ -143,7 +143,7 @@ function leader.bind_actions(key_binds)
   return leader.bind(key_binds)
 end
 
-leader.pure_sequence = leader.pure_sequence
+leader.pure_sequence = leader.bind_actions
 
 function leader.repeat_count(f)
   return function(args_stack)
